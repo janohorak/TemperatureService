@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: temperature-api-ingress
+spec:
+  rules:
+    - host: weather.local
+
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+
+            backend:
+              service:
+                name: temperature-api
+
+                port:
+                  number: 80

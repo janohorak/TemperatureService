@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../../tests/TemperatureService.Tests/TemperatureService.Tests.csproj" Id="54a93ac9-58ca-493c-b110-38858f974af6" />
+  <Project Path="../TemperatureService.LoadSimulator/TemperatureService.LoadSimulator.csproj" Id="eb8cb83c-961d-43e6-8445-15942da07216" />
+  <Project Path="../WeatherMock.Api/WeatherMock.Api.csproj" Id="ea0361bf-3e0e-4157-b08a-6538ccca2acb" />
+  <Project Path="TemperatureService.Api.csproj" />
+</Solution>
