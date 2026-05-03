@@ -59,8 +59,6 @@ public sealed class TemperatureRefreshBackgroundService : BackgroundService
                     "Pod {PodName}: temperature refresh background service failed.",
                     RuntimeInfo.PodName);
             }
-
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
     }
 
@@ -86,7 +84,7 @@ public sealed class TemperatureRefreshBackgroundService : BackgroundService
         }
 
         var cache = scope.ServiceProvider.GetRequiredService<ITemperatureCache>();
-        var weatherApiClient = scope.ServiceProvider.GetRequiredService<IWeatherApiClient>();       
+        var weatherApiClient = scope.ServiceProvider.GetRequiredService<IWeatherApiClient>();
 
         var cachedCities = await cache.GetCachedCitiesAsync(cancellationToken);
 

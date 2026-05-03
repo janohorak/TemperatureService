@@ -46,8 +46,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     return ConnectionMultiplexer.Connect(options.ConnectionString);
 });
 
-
-
 builder.Services.Configure<ApiAuthOptions>(
     builder.Configuration.GetSection("ApiAuth"));
 
@@ -65,7 +63,6 @@ builder.Services.AddAuthorization();
 builder.Services.Configure<TemperatureRefreshOptions>(
     builder.Configuration.GetSection("TemperatureRefresh"));
 
-//builder.Services.AddSingleton<ITemperatureCache, InMemoryTemperatureCache>();
 builder.Services.AddSingleton<ITemperatureCache, RedisTemperatureCache>();
 builder.Services.AddScoped<ITemperatureService, DefaultTemperatureService>();
 builder.Services.AddHostedService<TemperatureRefreshBackgroundService>();
@@ -111,14 +108,6 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    // In development, we want to show detailed error pages and enable Swagger UI.
-
-
-}
 
 app.UseHttpsRedirection();
 

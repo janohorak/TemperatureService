@@ -1,4 +1,6 @@
 ﻿using StackExchange.Redis;
+using TemperatureService.Api.Infrastructure;
+using TemperatureService.Api.Infrastructure.Logging;
 
 namespace TemperatureService.Api.Locking;
 
@@ -38,17 +40,31 @@ public sealed class RedisDistributedLockHandle : IDistributedLockHandle
 
         _disposed = true;
 
-        var result = await _database.ScriptEvaluateAsync(
-            ReleaseScript,
-            new
-            {
-                key = (RedisKey)Key,
-                token = (RedisValue)_token
-            });
+        try
+        {
+            var result = await _database.ScriptEvaluateAsync(
+                ReleaseScript,
+                new
+                {
+                    key = (RedisKey)Key,
+                    token = (RedisValue)_token
+                });
 
-        _logger.LogInformation(
-            "Distributed lock {LockKey} released. Result: {Result}",
-            Key,
-            result);
+            _logger.LogInformation(
+                TemperatureLogEvents.DistributedLockReleased,
+                "Pod {PodName}: distributed lock {LockKey} released. Result: {Result}.",
+                RuntimeInfo.PodName,
+                Key,
+                result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                TemperatureLogEvents.DistributedLockReleaseFailed,
+                ex,
+                "Pod {PodName}: failed to release distributed lock {LockKey}.",
+                RuntimeInfo.PodName,
+                Key);
+        }
     }
 }

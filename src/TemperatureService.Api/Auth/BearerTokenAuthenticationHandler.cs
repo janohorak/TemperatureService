@@ -1,58 +1,56 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using TemperatureService.Api.Options;
 
-namespace TemperatureService.Api.Auth
-{
-    public sealed class BearerTokenAuthenticationHandler
-        : AuthenticationHandler<AuthenticationSchemeOptions>
-    {
-        private readonly ApiAuthOptions _apiAuthOptions;
+namespace TemperatureService.Api.Auth;
 
-        public BearerTokenAuthenticationHandler(
-            IOptionsMonitor<AuthenticationSchemeOptions> options,
-            ILoggerFactory logger,
-            UrlEncoder encoder,
-            ApiAuthOptions apiAuthOptions)
-            : base(options, logger, encoder)
+public sealed class BearerTokenAuthenticationHandler
+    : AuthenticationHandler<AuthenticationSchemeOptions>
+{
+    private readonly ApiAuthOptions _apiAuthOptions;
+
+    public BearerTokenAuthenticationHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder,
+        ApiAuthOptions apiAuthOptions)
+        : base(options, logger, encoder)
+    {
+        _apiAuthOptions = apiAuthOptions;
+    }
+
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader))
         {
-            _apiAuthOptions = apiAuthOptions;
+            return Task.FromResult(AuthenticateResult.Fail("Missing Authorization header."));
         }
 
-        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        var headerValue = authorizationHeader.ToString();
+
+        if (!headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
-            if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader))
-            {
-                return Task.FromResult(AuthenticateResult.Fail("Missing Authorization header."));
-            }
+            return Task.FromResult(AuthenticateResult.Fail("Invalid Authorization header."));
+        }
 
-            var headerValue = authorizationHeader.ToString();
+        var token = headerValue["Bearer ".Length..].Trim();
 
-            if (!headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            {
-                return Task.FromResult(AuthenticateResult.Fail("Invalid Authorization header."));
-            }
+        if (token != _apiAuthOptions.Token)
+        {
+            return Task.FromResult(AuthenticateResult.Fail("Invalid token."));
+        }
 
-            var token = headerValue["Bearer ".Length..].Trim();
-
-            if (token != _apiAuthOptions.Token)
-            {
-                return Task.FromResult(AuthenticateResult.Fail("Invalid token."));
-            }
-
-            var claims = new[]
-            {
+        var claims = new[]
+        {
             new Claim(ClaimTypes.Name, "MockApiClient")
         };
 
-            var identity = new ClaimsIdentity(claims, Scheme.Name);
-            var principal = new ClaimsPrincipal(identity);
+        var identity = new ClaimsIdentity(claims, Scheme.Name);
+        var principal = new ClaimsPrincipal(identity);
+        var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-            var ticket = new AuthenticationTicket(principal, Scheme.Name);
-
-            return Task.FromResult(AuthenticateResult.Success(ticket));
-        }
+        return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 }

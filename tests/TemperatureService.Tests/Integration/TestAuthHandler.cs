@@ -18,6 +18,12 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        if (!Request.Headers.TryGetValue("Authorization", out var authHeader) ||
+            !authHeader.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            return Task.FromResult(AuthenticateResult.Fail("Missing or invalid Authorization header."));
+        }
+
         var claims = new[]
         {
             new Claim(ClaimTypes.Name, "test-user")

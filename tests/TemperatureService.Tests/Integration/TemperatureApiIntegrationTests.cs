@@ -9,11 +9,13 @@ namespace TemperatureService.Tests.Integration;
 public class TemperatureApiIntegrationTests
     : IClassFixture<CustomWebApplicationFactory>
 {
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
     public TemperatureApiIntegrationTests(
         CustomWebApplicationFactory factory)
     {
+        _factory = factory;
         _client = factory.CreateClient();
 
         _client.DefaultRequestHeaders.Authorization =
@@ -36,5 +38,30 @@ public class TemperatureApiIntegrationTests
         Assert.NotNull(result);
         Assert.Equal("bratislava", result.City);
         Assert.Equal(22.5m, result.TemperatureC);
+    }
+
+    [Fact]
+    public async Task GetTemperature_WithoutToken_ReturnsUnauthorized()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        // Act
+        var response = await client.GetAsync(
+            "/api/temperature/bratislava");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTemperature_WithUnsupportedCity_ReturnsNotFound()
+    {
+        // Act
+        var response = await _client.GetAsync(
+            "/api/temperature/unknowncity");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
