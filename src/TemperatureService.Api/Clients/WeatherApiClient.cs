@@ -42,6 +42,10 @@ public sealed class WeatherApiClient : IWeatherApiClient
             return await response.Content.ReadFromJsonAsync<WeatherApiResponse>(
                 cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(
